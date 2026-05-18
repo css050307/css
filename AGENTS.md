@@ -31,8 +31,10 @@ src/components/question-card.tsx   問題卡 + 按讚（"use client"）
 src/components/ui/            shadcn elements（button, card, textarea）
 src/lib/supabase.ts           browser-side client，env 缺失時 console.error
 src/lib/utils.ts              cn() helper
+src/lib/anon-id.ts            localStorage UUID（按讚 dedup key）
+src/lib/liked-store.ts        已按讚題目 (localStorage)
 src/types/database.ts         Question / Answer types
-supabase/migrations/0001_init.sql   schema + RLS + Realtime + seed
+supabase/migrations/0001_init.sql   schema + RLS + Realtime + 按讚 RPC + seed
 .env.example                  環境變數範本（NEXT_PUBLIC_SUPABASE_URL/ANON_KEY）
 ```
 
@@ -51,10 +53,10 @@ supabase/migrations/0001_init.sql   schema + RLS + Realtime + seed
 
 ### Supabase
 
-- 表名：`questions`、`answers`（schema 定義在 `supabase/migrations/0001_init.sql`）
-- RLS 政策只允許 anonymous SELECT / INSERT / UPDATE likes — 加新欄位/表時記得更新 RLS
+- 表名：`questions`、`answers`、`question_likes`（schema 定義在 `supabase/migrations/0001_init.sql`）
+- RLS 政策：anon 只能 `SELECT` / `INSERT` questions/answers。**按讚一律走 `increment_question_like(qid, anon)` RPC**（SECURITY DEFINER），anon 對 `questions.likes` 沒有直接 UPDATE 權限，`question_likes` 表更是完全摸不到（避免被 PATCH 偽造 likes 數字）
 - Realtime publication 已加 `questions`、`answers` 兩張表
-- 新增資料表流程：寫新的 migration `0002_xxx.sql`（不要改舊的）+ 學生需在 Supabase SQL Editor 重跑
+- 教學情境一張 `0001_init.sql` 走到底，**所有 schema 變動冪等寫進 0001**（`create if not exists` / `drop if exists` / `create or replace`），學生用 Supabase SQL Editor 或 `supabase db push` 重跑即可
 
 ### shadcn 元件
 
@@ -74,18 +76,18 @@ supabase/migrations/0001_init.sql   schema + RLS + Realtime + seed
 - **不要在前端用 `service_role` key** — 只能用 `anon` key
 - **不要新增 `tailwind.config.js`** — 此專案使用 Tailwind v4 inline theme
 - **不要把 ClassWall 的核心邏輯重構成過度抽象**（教學用，淺顯易懂優先）
-- **不要直接修改 `0001_init.sql`** — 要改 schema 請寫新的 migration 檔案
 - **不要把 page/component 命名改成英文** — 學生看的是中文教材，UI 文案保持中文
+- **不要還原 anon UPDATE 權限** — 按讚一律走 RPC，否則 `likes` 會被前端任意 PATCH 偽造
 
 ## Common tasks
 
-| 想做什麼         | 怎麼做                                                                 |
-| ---------------- | ---------------------------------------------------------------------- |
-| 加新 shadcn 元件 | `npx shadcn@latest add <name>`                                         |
-| 加新環境變數     | 同步更新 `.env.example` + README troubleshooting + Vercel 設定提醒     |
-| 改 schema        | 新建 `supabase/migrations/000N_xxx.sql`，README troubleshooting 加說明 |
-| 加新頁面         | `src/app/<route>/page.tsx`，用到 hooks 記得 `"use client"`             |
-| 跑驗證           | `npm run lint && npm run format:check && npm run build`                |
+| 想做什麼         | 怎麼做                                                                                    |
+| ---------------- | ----------------------------------------------------------------------------------------- |
+| 加新 shadcn 元件 | `npx shadcn@latest add <name>`                                                            |
+| 加新環境變數     | 同步更新 `.env.example` + README troubleshooting + Vercel 設定提醒                        |
+| 改 schema        | 改 `supabase/migrations/0001_init.sql`（保持冪等），`supabase db push` 或 SQL Editor 重跑 |
+| 加新頁面         | `src/app/<route>/page.tsx`，用到 hooks 記得 `"use client"`                                |
+| 跑驗證           | `npm run lint && npm run format:check && npm run build`                                   |
 
 ## Verification before commit
 

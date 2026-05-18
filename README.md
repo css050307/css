@@ -224,6 +224,12 @@ npm run format:check  # 檢查格式
 **發問成功但別的分頁沒即時更新**
 → Realtime 沒打開。在 Supabase Dashboard `Database → Replication` 看 `questions` 的 Realtime 開關，或重跑一次 `0001_init.sql` 中 `alter publication` 那兩行。
 
+**按 +1 沒反應 / console 噴 `function ... does not exist`**
+→ 舊 schema 沒升級。重跑一次 `supabase/migrations/0001_init.sql`（SQL Editor 整段貼上，或 `supabase db push`）即可——整檔已寫成冪等，重跑不會掉資料。
+
+**按 +1 沒效果但 Network 看到 PATCH `/rest/v1/questions?id=eq...` 200**
+→ 你還沒升級到含 RPC 的版本：升級後 anon 的 UPDATE policy 已被移除，PATCH 會回 200 但 row 不變（PostgREST 用 RLS filter，過不去就靜默丟掉）。前端要改走 `supabase.rpc('increment_question_like', ...)`。
+
 **部署到 Vercel 後線上版壞掉**
 → 大部分是忘記設環境變數。Vercel Project → Settings → Environment Variables 加上兩把 key → Redeploy。
 
@@ -236,7 +242,7 @@ npm run format:check  # 檢查格式
 
 對應 Notion [課後挑戰 & 延伸](https://www.notion.so/34aad1e3133681019944cf942c5c75a0)，可以試試看：
 
-- **防止同一人狂按 +1**（提示：localStorage / IP 限流 / 登入制）
+- **更嚴格的防刷**（目前已用 DB 端 `question_likes` 去重 + SECURITY DEFINER RPC 鎖死數字；想再嚴格可接 Supabase Anonymous Auth 把 dedup key 換成 `auth.uid()`）
 - **加上「答案」功能**（已預先建好 `answers` 表，練習一對多 join）
 - **本週熱門問題榜**
 - **加入主題切換**（已預備 dark mode tokens）

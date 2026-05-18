@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { memo, useEffect, useRef, useState } from "react";
 
 import { AnswerSection } from "@/components/answer-section";
+import { getAnonId } from "@/lib/anon-id";
 import { addLiked, hasLiked } from "@/lib/liked-store";
 import { supabase } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
@@ -74,10 +75,12 @@ function QuestionCardImpl({ question }: Props) {
   async function handleLike() {
     if (pending || alreadyLiked) return;
     setPending(true);
-    const { error } = await supabase
-      .from("questions")
-      .update({ likes: question.likes + 1 })
-      .eq("id", question.id);
+    // 走 RPC：DB 端 SECURITY DEFINER 函式內原子地寫 question_likes 去重 + bump likes
+    // 不在這裡 +1 — 交給 Realtime UPDATE 廣播統一刷新，避免雙重 +1
+    const { error } = await supabase.rpc("increment_question_like", {
+      qid: question.id,
+      anon: getAnonId(),
+    });
     setPending(false);
     if (error) {
       console.error("按讚失敗", error);
