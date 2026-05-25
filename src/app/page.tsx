@@ -39,7 +39,7 @@ export default function Home() {
     <>
       <div ref={spotlightRef} className="mouse-spotlight" aria-hidden />
 
-      <main className="relative mx-auto flex w-full max-w-3xl flex-col gap-10 px-4 py-10 sm:px-6 sm:py-16 lg:px-8">
+      <main className="relative mx-auto flex w-full max-w-4xl flex-col gap-10 px-4 py-10 sm:px-6 sm:py-16 lg:px-8">
         {/* ============ Header ============ */}
         <motion.header
           initial="hidden"
@@ -51,8 +51,19 @@ export default function Home() {
               transition: { staggerChildren: 0.09, delayChildren: 0.05 },
             },
           }}
-          className="flex flex-col gap-4"
+          className="relative overflow-hidden rounded-[2rem] border border-border/70 bg-card/65 p-5 shadow-[0_1px_0_oklch(0.92_0.02_70_/_0.7),0_40px_80px_-44px_oklch(0.35_0.05_48_/_0.36)] backdrop-blur-md sm:p-8"
         >
+          <span
+            aria-hidden
+            className="pointer-events-none absolute -left-14 top-0 h-52 w-52 rounded-full bg-linear-to-br from-primary/20 via-primary/8 to-transparent blur-2xl"
+          />
+          <span
+            aria-hidden
+            className="pointer-events-none absolute -right-10 bottom-0 h-44 w-44 rounded-full bg-linear-to-br from-accent/25 via-accent/10 to-transparent blur-2xl"
+          />
+
+          <div className="relative grid gap-6 lg:grid-cols-[1fr_200px] lg:items-start">
+            <div className="flex flex-col gap-5">
           <motion.div
             variants={{
               hidden: { opacity: 0, y: -6 },
@@ -64,7 +75,9 @@ export default function Home() {
               <span className="inline-block h-px w-6 bg-foreground/30" />
               <span>AI × 教學 · 2026</span>
             </div>
-            <ThemeToggle />
+                <div className="lg:hidden">
+                  <ThemeToggle />
+                </div>
           </motion.div>
 
           <motion.h1
@@ -72,7 +85,7 @@ export default function Home() {
               hidden: { opacity: 0, y: 14 },
               show: { opacity: 1, y: 0 },
             }}
-            className="font-display text-5xl leading-[0.95] tracking-tight sm:text-6xl lg:text-7xl"
+            className="font-display text-5xl leading-[0.95] tracking-tight sm:text-6xl"
           >
             <span className="italic">Class</span>
             <span>Wall</span>
@@ -84,7 +97,7 @@ export default function Home() {
               hidden: { opacity: 0, y: 10 },
               show: { opacity: 1, y: 0 },
             }}
-            className="max-w-xl text-[15px] leading-relaxed text-muted-foreground sm:text-base"
+            className="max-w-2xl text-[15px] leading-relaxed text-muted-foreground sm:text-base"
           >
             一道屬於這間教室的匿名問答牆——
             <span className="font-display italic text-foreground">
@@ -107,6 +120,49 @@ export default function Home() {
               <span className="text-muted-foreground">即時連線中</span>
             </span>
           </motion.div>
+
+              <motion.div
+                variants={{
+                  hidden: { opacity: 0, y: 8 },
+                  show: { opacity: 1, y: 0 },
+                }}
+                className="flex flex-wrap items-center gap-3 pt-2"
+              >
+                <span className="inline-flex items-center rounded-full border border-border/65 bg-background/65 px-3 py-1 text-[11px] tracking-[0.18em] text-muted-foreground">
+                  匿名提問
+                </span>
+                <span className="inline-flex items-center rounded-full border border-border/65 bg-background/65 px-3 py-1 text-[11px] tracking-[0.18em] text-muted-foreground">
+                  即時更新
+                </span>
+                <span className="inline-flex items-center rounded-full border border-border/65 bg-background/65 px-3 py-1 text-[11px] tracking-[0.18em] text-muted-foreground">
+                  全班可見
+                </span>
+              </motion.div>
+            </div>
+
+            <motion.aside
+              variants={{
+                hidden: { opacity: 0, x: 12 },
+                show: { opacity: 1, x: 0 },
+              }}
+              className="hidden rounded-3xl border border-border/70 bg-background/55 p-4 lg:flex lg:flex-col lg:gap-4"
+            >
+              <div className="flex justify-end">
+                <ThemeToggle />
+              </div>
+              <div className="space-y-1">
+                <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+                  班級節奏
+                </p>
+                <p className="font-display text-2xl italic leading-none">
+                  Ask. Vote. Flow.
+                </p>
+              </div>
+              <p className="text-xs leading-relaxed text-muted-foreground">
+                問題會依熱度排序，讓真正想被討論的題目浮上來。
+              </p>
+            </motion.aside>
+          </div>
         </motion.header>
 
         {/* ============ 發問區 ============ */}
